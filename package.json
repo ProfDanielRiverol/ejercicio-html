@@ -1,0 +1,12 @@
+{
+  "name": "html-evaluation",
+  "version": "1.0.0",
+  "description": "Evaluación de estructura y etiquetas semánticas en HTML",
+  "main": "index.html",
+  "scripts": {
+    "test": "htmlhint"
+  },
+  "devDependencies": {
+    "htmlhint": "^0.16.2"
+  }
+}

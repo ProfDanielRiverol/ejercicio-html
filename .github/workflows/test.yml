@@ -1,0 +1,68 @@
+name: Autocorrección de HTML
+
+on:
+  push:
+    branches:
+      - main
+#   pull_request:
+#     branches:
+#       - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Instalar dependencias
+      run: npm install
+
+    - name: Ejecutar HTMLHint y guardar resultados
+      run: |
+        htmlhint > htmlhint-results.txt
+        if [ -s htmlhint-results.txt ]; then exit 1; fi  # Falla si hay errores
+
+    - name: Generar mensaje si los tests fallan
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const htmlhintResults = fs.readFileSync('htmlhint-results.txt', 'utf8');
+          
+          const commentBody = `
+          **Resultados de los tests:**
+
+          ### HTMLHint:
+          ${htmlhintResults}
+
+          Los tests han fallado. Por favor, revisa tu HTML y corrige los errores.
+          `;
+          
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: commentBody
+          });
+
+    - name: Generar mensaje si los tests pasan
+      if: success()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const commentBody = `
+          🎉 ¡Felicitaciones! Todos los tests de HTML han pasado correctamente.
+
+          Tu archivo HTML está bien estructurado y sigue las mejores prácticas.
+
+          ¡Buen trabajo!
+          `;
+          
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: commentBody
+          });
